@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Calculator — Unit Converter & Physics Formulas</title>
+<title>Calcura — Unit Converter, Physics & Scientific Calculator</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,7 +14,7 @@
   </div>
   <div class="app">
     <header class="topbar">
-      <h1>Smart Calculator</h1>
+      <h1>Calcura</h1>
       <button id="themeToggle" class="theme-toggle" title="Toggle light/dark mode">🌙</button>
     </header>
 
@@ -28,6 +28,8 @@
     <!-- ===== UNIT CONVERTER SECTION ===== -->
     <section id="converter" class="tab-panel active">
       <div class="card">
+        <p class="section-desc">Quickly convert values across Length, Mass, Time, Temperature, Area, Volume, Speed and Data Size.</p>
+
         <div class="field">
           <label for="category">Category</label>
           <select id="category"></select>
@@ -50,12 +52,20 @@
         </div>
 
         <p class="result" id="resultText"></p>
+
+        <ul class="section-tips">
+          <li>Type a number in "From" to see the converted result instantly.</li>
+          <li>Use the swap (⇄) button to flip the two units in one tap.</li>
+          <li>Switch categories anytime from the dropdown above.</li>
+        </ul>
       </div>
     </section>
 
     <!-- ===== PHYSICS FORMULAS SECTION ===== -->
     <section id="physics" class="tab-panel">
       <div class="card">
+        <p class="section-desc">Solve common Class 11–12 physics formulas — pick a formula, choose what to solve for, and fill in the rest.</p>
+
         <div class="field">
           <label for="formulaSelect">Formula</label>
           <select id="formulaSelect"></select>
@@ -73,12 +83,20 @@
         <button id="calcBtn" class="calc-btn">Calculate</button>
 
         <div class="physics-result" id="physicsResult"></div>
+
+        <ul class="section-tips">
+          <li>"Solve for" picks which variable gets calculated.</li>
+          <li>Default values like g = 9.8 m/s² are pre-filled — edit if needed.</li>
+          <li>Covers mechanics, electricity, gravitation and more.</li>
+        </ul>
       </div>
     </section>
 
     <!-- ===== SCIENTIFIC CALCULATOR SECTION ===== -->
     <section id="scientific" class="tab-panel">
       <div class="card">
+        <p class="section-desc">A full scientific calculator with trigonometry, logarithms, powers, and constants.</p>
+
         <div class="calc-top">
           <button id="degRadToggle" class="deg-rad-toggle">DEG</button>
           <div class="calc-screen">
@@ -132,8 +150,18 @@
           <button class="sci-btn" data-insert=".">.</button>
           <button class="sci-btn btn-equals" data-action="equals">=</button>
         </div>
+
+        <ul class="section-tips">
+          <li>Tap INV to switch sin/cos/tan to their inverse (sin⁻¹, cos⁻¹, tan⁻¹).</li>
+          <li>Toggle DEG/RAD depending on the angle unit you need.</li>
+          <li>A live preview of the result shows above before you press "=".</li>
+        </ul>
       </div>
     </section>
+
+    <footer class="site-footer">
+      <p>Made by Faraz &copy; 2026</p>
+    </footer>
   </div>
 
   <script src="script.js"></script>
