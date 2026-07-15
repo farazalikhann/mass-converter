@@ -25,6 +25,12 @@ themeToggle.addEventListener("click", () => {
 /* ============ TABS ============ */
 const tabButtons = document.querySelectorAll(".tab-btn");
 const tabPanels = document.querySelectorAll(".tab-panel");
+const tabIndicator = document.getElementById("tabIndicator");
+
+function moveTabIndicator(btn) {
+  tabIndicator.style.width = btn.offsetWidth + "px";
+  tabIndicator.style.transform = `translateX(${btn.offsetLeft - 6}px)`;
+}
 
 tabButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -32,8 +38,21 @@ tabButtons.forEach((btn) => {
     tabPanels.forEach((p) => p.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById(btn.dataset.tab).classList.add("active");
+    moveTabIndicator(btn);
   });
 });
+
+window.addEventListener("resize", () => {
+  const activeTab = document.querySelector(".tab-btn.active");
+  if (activeTab) moveTabIndicator(activeTab);
+});
+
+window.addEventListener("load", () => {
+  const activeTab = document.querySelector(".tab-btn.active");
+  if (activeTab) moveTabIndicator(activeTab);
+});
+
+moveTabIndicator(document.querySelector(".tab-btn.active"));
 
 /* ============ UNIT CONVERTER ============ */
 const categories = {
@@ -508,6 +527,12 @@ const calcDisplay = document.getElementById("calcDisplay");
 const calcPreview = document.getElementById("calcPreview");
 const calcScreen = document.querySelector(".calc-screen");
 const sciButtons = document.querySelectorAll(".sci-btn");
+const invToggle = document.getElementById("invToggle");
+const trigButtons = document.querySelectorAll(".trig-btn");
+
+let invMode = false;
+const TRIG_INVERSE = { sin: "asin", cos: "acos", tan: "atan" };
+const TRIG_LABEL = { sin: "sin⁻¹", cos: "cos⁻¹", tan: "tan⁻¹" };
 
 degRadToggle.addEventListener("click", () => {
   degreeMode = !degreeMode;
@@ -515,15 +540,41 @@ degRadToggle.addEventListener("click", () => {
   updatePreview();
 });
 
+invToggle.addEventListener("click", () => {
+  invMode = !invMode;
+  invToggle.classList.toggle("active", invMode);
+  trigButtons.forEach((btn) => {
+    const base = btn.dataset.fn;
+    btn.textContent = invMode ? TRIG_LABEL[base] : base;
+  });
+});
+
 sciButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
-    if (btn.dataset.action === "ac") {
+    const action = btn.dataset.action;
+
+    if (btn.classList.contains("trig-btn")) {
+      const fnName = invMode ? TRIG_INVERSE[btn.dataset.fn] : btn.dataset.fn;
+      calcDisplay.value += fnName + "(";
+    } else if (action === "ac") {
       calcDisplay.value = "";
-    } else if (btn.dataset.action === "del") {
+    } else if (action === "del") {
       calcDisplay.value = calcDisplay.value.slice(0, -1);
-    } else if (btn.dataset.action === "equals") {
+    } else if (action === "equals") {
       evaluateDisplay();
       return;
+    } else if (action === "negate") {
+      if (calcDisplay.value.startsWith("-(") && calcDisplay.value.endsWith(")")) {
+        calcDisplay.value = calcDisplay.value.slice(2, -1);
+      } else if (calcDisplay.value) {
+        calcDisplay.value = "-(" + calcDisplay.value + ")";
+      }
+    } else if (action === "square") {
+      if (calcDisplay.value) calcDisplay.value = "(" + calcDisplay.value + ")^2";
+    } else if (action === "factorial") {
+      if (calcDisplay.value) calcDisplay.value = "(" + calcDisplay.value + ")!";
+    } else if (action === "reciprocal") {
+      if (calcDisplay.value) calcDisplay.value = "1/(" + calcDisplay.value + ")";
     } else if (btn.dataset.insert) {
       calcDisplay.value += btn.dataset.insert;
     }
@@ -577,7 +628,7 @@ function formatCalcResult(value) {
 
 // Tokenizer + recursive-descent parser for arithmetic/scientific expressions.
 // Avoids eval() entirely for safety.
-const CALC_FUNCTIONS = ["sin", "cos", "tan", "log", "ln", "sqrt"];
+const CALC_FUNCTIONS = ["sin", "cos", "tan", "asin", "acos", "atan", "log", "ln", "sqrt"];
 
 function tokenizeExpression(input) {
   const tokens = [];
@@ -615,6 +666,11 @@ function tokenizeExpression(input) {
       } else {
         throw new Error("Unknown token: " + word);
       }
+      continue;
+    }
+    if (ch === "!") {
+      tokens.push({ type: "postfix", value: "!" });
+      i++;
       continue;
     }
     if ("+-*/^%()".includes(ch)) {
@@ -695,7 +751,24 @@ function evaluateExpression(input) {
       consume();
       return parseUnary();
     }
-    return parsePrimary();
+    return parsePostfix();
+  }
+
+  function parsePostfix() {
+    let value = parsePrimary();
+    while (peek() && peek().type === "postfix" && peek().value === "!") {
+      consume();
+      value = factorial(value);
+    }
+    return value;
+  }
+
+  function factorial(n) {
+    if (n < 0 || !Number.isInteger(n)) return NaN;
+    if (n > 170) return Infinity;
+    let result = 1;
+    for (let k = 2; k <= n; k++) result *= k;
+    return result;
   }
 
   function parsePrimary() {
@@ -727,10 +800,14 @@ function evaluateExpression(input) {
 
   function applyFunction(name, arg) {
     const angle = degreeMode ? (arg * Math.PI) / 180 : arg;
+    const toOutputAngle = (rad) => (degreeMode ? (rad * 180) / Math.PI : rad);
     switch (name) {
       case "sin": return Math.sin(angle);
       case "cos": return Math.cos(angle);
       case "tan": return Math.tan(angle);
+      case "asin": return toOutputAngle(Math.asin(arg));
+      case "acos": return toOutputAngle(Math.acos(arg));
+      case "atan": return toOutputAngle(Math.atan(arg));
       case "log": return Math.log10(arg);
       case "ln": return Math.log(arg);
       case "sqrt": return Math.sqrt(arg);
