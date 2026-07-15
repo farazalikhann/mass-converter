@@ -499,3 +499,246 @@ solveForSelect.addEventListener("change", renderVariableInputs);
 calcBtn.addEventListener("click", calculatePhysics);
 
 loadFormula();
+
+/* ============ SCIENTIFIC CALCULATOR ============ */
+let degreeMode = true;
+
+const degRadToggle = document.getElementById("degRadToggle");
+const calcDisplay = document.getElementById("calcDisplay");
+const calcPreview = document.getElementById("calcPreview");
+const calcScreen = document.querySelector(".calc-screen");
+const sciButtons = document.querySelectorAll(".sci-btn");
+
+degRadToggle.addEventListener("click", () => {
+  degreeMode = !degreeMode;
+  degRadToggle.textContent = degreeMode ? "DEG" : "RAD";
+  updatePreview();
+});
+
+sciButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    if (btn.dataset.action === "ac") {
+      calcDisplay.value = "";
+    } else if (btn.dataset.action === "del") {
+      calcDisplay.value = calcDisplay.value.slice(0, -1);
+    } else if (btn.dataset.action === "equals") {
+      evaluateDisplay();
+      return;
+    } else if (btn.dataset.insert) {
+      calcDisplay.value += btn.dataset.insert;
+    }
+    updatePreview();
+    calcDisplay.focus();
+  });
+});
+
+calcDisplay.addEventListener("input", updatePreview);
+calcDisplay.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    evaluateDisplay();
+  }
+});
+
+function updatePreview() {
+  const expr = calcDisplay.value.trim();
+  calcScreen.classList.remove("error");
+  if (!expr) {
+    calcPreview.innerHTML = "&nbsp;";
+    return;
+  }
+  try {
+    const value = evaluateExpression(expr);
+    calcPreview.textContent = "= " + formatCalcResult(value);
+  } catch {
+    calcPreview.innerHTML = "&nbsp;";
+  }
+}
+
+function evaluateDisplay() {
+  const expr = calcDisplay.value.trim();
+  if (!expr) return;
+  try {
+    const value = evaluateExpression(expr);
+    calcDisplay.value = formatCalcResult(value);
+    calcPreview.innerHTML = "&nbsp;";
+  } catch {
+    calcScreen.classList.remove("error");
+    void calcScreen.offsetWidth;
+    calcScreen.classList.add("error");
+    calcPreview.textContent = "Error";
+  }
+}
+
+function formatCalcResult(value) {
+  if (!isFinite(value)) throw new Error("Invalid result");
+  return String(Math.round(value * 1e10) / 1e10);
+}
+
+// Tokenizer + recursive-descent parser for arithmetic/scientific expressions.
+// Avoids eval() entirely for safety.
+const CALC_FUNCTIONS = ["sin", "cos", "tan", "log", "ln", "sqrt"];
+
+function tokenizeExpression(input) {
+  const tokens = [];
+  let i = 0;
+  const normalized = input.replace(/√/g, "sqrt").replace(/π/g, "pi");
+
+  while (i < normalized.length) {
+    const ch = normalized[i];
+
+    if (/\s/.test(ch)) {
+      i++;
+      continue;
+    }
+    if (/[0-9.]/.test(ch)) {
+      let num = "";
+      while (i < normalized.length && /[0-9.]/.test(normalized[i])) {
+        num += normalized[i];
+        i++;
+      }
+      tokens.push({ type: "number", value: parseFloat(num) });
+      continue;
+    }
+    if (/[a-zA-Z]/.test(ch)) {
+      let word = "";
+      while (i < normalized.length && /[a-zA-Z]/.test(normalized[i])) {
+        word += normalized[i];
+        i++;
+      }
+      if (word === "pi") {
+        tokens.push({ type: "number", value: Math.PI });
+      } else if (word === "e") {
+        tokens.push({ type: "number", value: Math.E });
+      } else if (CALC_FUNCTIONS.includes(word)) {
+        tokens.push({ type: "func", value: word });
+      } else {
+        throw new Error("Unknown token: " + word);
+      }
+      continue;
+    }
+    if ("+-*/^%()".includes(ch)) {
+      tokens.push({ type: ch === "(" || ch === ")" ? "paren" : "op", value: ch });
+      i++;
+      continue;
+    }
+    throw new Error("Unexpected character: " + ch);
+  }
+
+  // Insert implicit multiplication, e.g. "2pi", "2(3+4)", "(2)(3)", "2sin(4)"
+  const withImplicitMul = [];
+  for (let t = 0; t < tokens.length; t++) {
+    const cur = tokens[t];
+    const prev = tokens[t - 1];
+    if (
+      prev &&
+      (prev.type === "number" || (prev.type === "paren" && prev.value === ")")) &&
+      (cur.type === "number" || cur.type === "func" || (cur.type === "paren" && cur.value === "("))
+    ) {
+      withImplicitMul.push({ type: "op", value: "*" });
+    }
+    withImplicitMul.push(cur);
+  }
+
+  return withImplicitMul;
+}
+
+function evaluateExpression(input) {
+  const tokens = tokenizeExpression(input);
+  let pos = 0;
+
+  function peek() {
+    return tokens[pos];
+  }
+  function consume() {
+    return tokens[pos++];
+  }
+
+  function parseExpression() {
+    let value = parseTerm();
+    while (peek() && peek().type === "op" && (peek().value === "+" || peek().value === "-")) {
+      const op = consume().value;
+      const rhs = parseTerm();
+      value = op === "+" ? value + rhs : value - rhs;
+    }
+    return value;
+  }
+
+  function parseTerm() {
+    let value = parsePower();
+    while (peek() && peek().type === "op" && (peek().value === "*" || peek().value === "/" || peek().value === "%")) {
+      const op = consume().value;
+      const rhs = parsePower();
+      if (op === "*") value *= rhs;
+      else if (op === "/") value /= rhs;
+      else value %= rhs;
+    }
+    return value;
+  }
+
+  function parsePower() {
+    const value = parseUnary();
+    if (peek() && peek().type === "op" && peek().value === "^") {
+      consume();
+      const rhs = parsePower(); // right-associative
+      return Math.pow(value, rhs);
+    }
+    return value;
+  }
+
+  function parseUnary() {
+    if (peek() && peek().type === "op" && peek().value === "-") {
+      consume();
+      return -parseUnary();
+    }
+    if (peek() && peek().type === "op" && peek().value === "+") {
+      consume();
+      return parseUnary();
+    }
+    return parsePrimary();
+  }
+
+  function parsePrimary() {
+    const token = peek();
+    if (!token) throw new Error("Unexpected end of expression");
+
+    if (token.type === "number") {
+      consume();
+      return token.value;
+    }
+    if (token.type === "func") {
+      consume();
+      if (!peek() || peek().value !== "(") throw new Error("Expected ( after function");
+      consume();
+      const argValue = parseExpression();
+      if (!peek() || peek().value !== ")") throw new Error("Expected )");
+      consume();
+      return applyFunction(token.value, argValue);
+    }
+    if (token.type === "paren" && token.value === "(") {
+      consume();
+      const value = parseExpression();
+      if (!peek() || peek().value !== ")") throw new Error("Expected )");
+      consume();
+      return value;
+    }
+    throw new Error("Unexpected token: " + token.value);
+  }
+
+  function applyFunction(name, arg) {
+    const angle = degreeMode ? (arg * Math.PI) / 180 : arg;
+    switch (name) {
+      case "sin": return Math.sin(angle);
+      case "cos": return Math.cos(angle);
+      case "tan": return Math.tan(angle);
+      case "log": return Math.log10(arg);
+      case "ln": return Math.log(arg);
+      case "sqrt": return Math.sqrt(arg);
+      default: throw new Error("Unknown function: " + name);
+    }
+  }
+
+  const result = parseExpression();
+  if (pos !== tokens.length) throw new Error("Unexpected trailing tokens");
+  return result;
+}

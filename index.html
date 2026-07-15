@@ -16,6 +16,7 @@
     <nav class="tabs">
       <button class="tab-btn active" data-tab="converter">🔄 Unit Converter</button>
       <button class="tab-btn" data-tab="physics">🧪 Physics Formulas</button>
+      <button class="tab-btn" data-tab="scientific">🧮 Scientific</button>
     </nav>
 
     <!-- ===== UNIT CONVERTER SECTION ===== -->
@@ -66,6 +67,59 @@
         <button id="calcBtn" class="calc-btn">Calculate</button>
 
         <div class="physics-result" id="physicsResult"></div>
+      </div>
+    </section>
+
+    <!-- ===== SCIENTIFIC CALCULATOR SECTION ===== -->
+    <section id="scientific" class="tab-panel">
+      <div class="card">
+        <div class="calc-top">
+          <button id="degRadToggle" class="deg-rad-toggle">DEG</button>
+          <div class="calc-screen">
+            <div class="calc-preview" id="calcPreview">&nbsp;</div>
+            <input type="text" id="calcDisplay" class="calc-display" value="" placeholder="0" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="calc-grid">
+          <button class="sci-btn btn-clear" data-action="ac">AC</button>
+          <button class="sci-btn btn-clear" data-action="del">DEL</button>
+          <button class="sci-btn btn-op" data-insert="(">(</button>
+          <button class="sci-btn btn-op" data-insert=")">)</button>
+
+          <button class="sci-btn btn-fn" data-insert="sin(">sin</button>
+          <button class="sci-btn btn-fn" data-insert="cos(">cos</button>
+          <button class="sci-btn btn-fn" data-insert="tan(">tan</button>
+          <button class="sci-btn btn-op" data-insert="^">^</button>
+
+          <button class="sci-btn btn-fn" data-insert="log(">log</button>
+          <button class="sci-btn btn-fn" data-insert="ln(">ln</button>
+          <button class="sci-btn btn-fn" data-insert="√(">√</button>
+          <button class="sci-btn btn-op" data-insert="%">%</button>
+
+          <button class="sci-btn btn-const" data-insert="π">π</button>
+          <button class="sci-btn btn-const" data-insert="e">e</button>
+          <button class="sci-btn" data-insert="7">7</button>
+          <button class="sci-btn" data-insert="8">8</button>
+
+          <button class="sci-btn" data-insert="9">9</button>
+          <button class="sci-btn btn-op" data-insert="/">÷</button>
+          <button class="sci-btn" data-insert="4">4</button>
+          <button class="sci-btn" data-insert="5">5</button>
+
+          <button class="sci-btn" data-insert="6">6</button>
+          <button class="sci-btn btn-op" data-insert="*">×</button>
+          <button class="sci-btn" data-insert="1">1</button>
+          <button class="sci-btn" data-insert="2">2</button>
+
+          <button class="sci-btn" data-insert="3">3</button>
+          <button class="sci-btn btn-op" data-insert="-">−</button>
+          <button class="sci-btn" data-insert="0">0</button>
+          <button class="sci-btn" data-insert=".">.</button>
+
+          <button class="sci-btn btn-op" data-insert="+">+</button>
+          <button class="sci-btn btn-equals" data-action="equals">=</button>
+        </div>
       </div>
     </section>
   </div>
