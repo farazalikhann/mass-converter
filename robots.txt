@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://farazalikhann.github.io/mass-converter/sitemap.xml
