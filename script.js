@@ -554,6 +554,10 @@ invToggle.addEventListener("click", () => {
 
 sciButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
+    btn.classList.remove("pressed");
+    void btn.offsetWidth;
+    btn.classList.add("pressed");
+
     const action = btn.dataset.action;
 
     if (btn.classList.contains("trig-btn")) {
