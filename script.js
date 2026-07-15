@@ -178,6 +178,10 @@ swapBtn.addEventListener("click", () => {
   fromUnitSelect.selectedIndex = toUnitSelect.selectedIndex;
   toUnitSelect.selectedIndex = tempIndex;
   convert();
+
+  swapBtn.classList.remove("spin");
+  void swapBtn.offsetWidth;
+  swapBtn.classList.add("spin");
 });
 
 populateSelect(categorySelect, Object.keys(categories));
@@ -541,6 +545,7 @@ degRadToggle.addEventListener("click", () => {
   degreeMode = !degreeMode;
   degRadToggle.textContent = degreeMode ? "DEG" : "RAD";
   updatePreview();
+  vibrate(10);
 });
 
 invToggle.addEventListener("click", () => {
@@ -550,7 +555,14 @@ invToggle.addEventListener("click", () => {
     const base = btn.dataset.fn;
     btn.textContent = invMode ? TRIG_LABEL[base] : base;
   });
+  vibrate(10);
 });
+
+function vibrate(duration) {
+  if (navigator.vibrate) {
+    navigator.vibrate(duration);
+  }
+}
 
 sciButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -559,6 +571,7 @@ sciButtons.forEach((btn) => {
     btn.classList.add("pressed");
 
     const action = btn.dataset.action;
+    vibrate(action === "equals" || action === "ac" ? 20 : 10);
 
     if (btn.classList.contains("trig-btn")) {
       const fnName = invMode ? TRIG_INVERSE[btn.dataset.fn] : btn.dataset.fn;

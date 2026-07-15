@@ -347,35 +347,58 @@ select:focus {
 
 .convert-row {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 10px;
 }
 
-.convert-row .field select {
-  margin-top: 8px;
-}
-
 #swapBtn {
+  position: relative;
   border: 1px solid var(--card-border);
-  background: var(--input-bg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: inset 0 1px 0 var(--glass-highlight);
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   font-size: 18px;
   cursor: pointer;
-  margin-bottom: 2px;
-  color: var(--accent);
   flex-shrink: 0;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.35s ease, color 0.2s ease;
+  color: #fff;
+  box-shadow: 0 4px 14px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
+  animation: swapIdlePulse 2.6s ease-in-out infinite;
+}
+
+.swap-icon {
+  display: inline-block;
+  transition: transform 0.2s ease;
 }
 
 #swapBtn:hover {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  transform: rotate(180deg);
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+#swapBtn:hover .swap-icon {
+  transform: rotate(15deg);
+}
+
+#swapBtn.spin .swap-icon {
+  animation: swapSpin 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes swapIdlePulse {
+  0%, 100% {
+    box-shadow: 0 4px 14px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 14px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 0 7px var(--accent-soft);
+  }
+}
+
+@keyframes swapSpin {
+  0% { transform: rotate(0deg) scale(1); }
+  45% { transform: rotate(210deg) scale(1.25); }
+  75% { transform: rotate(330deg) scale(0.9); }
+  100% { transform: rotate(360deg) scale(1); }
 }
 
 input[readonly] {
@@ -384,13 +407,54 @@ input[readonly] {
   color: var(--accent);
 }
 
-.result {
+.convert-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background:
+    linear-gradient(135deg, var(--glass-highlight), rgba(255, 255, 255, 0) 55%),
+    var(--input-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+
+.convert-box:focus-within {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.convert-box label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.result-hero {
   text-align: center;
   margin-top: 20px;
-  color: var(--text-secondary);
-  font-size: 14px;
-  min-height: 18px;
+  padding: 16px;
+  min-height: 24px;
+  font-size: 19px;
+  font-weight: 700;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--text-primary);
   animation: fadeIn 0.3s ease;
+  transition: background 0.3s ease;
+}
+
+.result-hero:empty {
+  padding: 0;
+  margin-top: 0;
+  min-height: 0;
 }
 
 @keyframes fadeIn {
@@ -733,10 +797,15 @@ input[readonly] {
 
   #swapBtn {
     align-self: center;
+    transform: rotate(90deg);
   }
 
   #swapBtn:hover {
-    transform: rotate(180deg) scale(1.05);
+    transform: rotate(90deg) scale(1.08);
+  }
+
+  #swapBtn.spin {
+    transform: rotate(90deg);
   }
 
   .variable-inputs {
