@@ -23,26 +23,29 @@ themeToggle.addEventListener("click", () => {
 });
 
 /* ============ TABS ============ */
-const tabButtons = document.querySelectorAll(".tab-btn");
+const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
 const tabPanels = document.querySelectorAll(".tab-panel");
 const tabIndicator = document.getElementById("tabIndicator");
+const tabsNav = document.querySelector(".tabs");
+
+let currentIndicatorX = 0;
 
 function moveTabIndicator(btn) {
   tabIndicator.style.width = btn.offsetWidth + "px";
-  tabIndicator.style.transform = `translateX(${btn.offsetLeft - 6}px)`;
-  tabIndicator.classList.remove("morph");
-  void tabIndicator.offsetWidth;
-  tabIndicator.classList.add("morph");
+  currentIndicatorX = btn.offsetLeft - 6;
+  tabIndicator.style.transform = `translateX(${currentIndicatorX}px)`;
+}
+
+function activateTab(btn) {
+  tabButtons.forEach((b) => b.classList.remove("active"));
+  tabPanels.forEach((p) => p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById(btn.dataset.tab).classList.add("active");
+  moveTabIndicator(btn);
 }
 
 tabButtons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    tabButtons.forEach((b) => b.classList.remove("active"));
-    tabPanels.forEach((p) => p.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById(btn.dataset.tab).classList.add("active");
-    moveTabIndicator(btn);
-  });
+  btn.addEventListener("click", () => activateTab(btn));
 });
 
 window.addEventListener("resize", () => {
@@ -56,6 +59,92 @@ window.addEventListener("load", () => {
 });
 
 moveTabIndicator(document.querySelector(".tab-btn.active"));
+
+/* ---- Drag anywhere on the nav bar to switch tabs ---- */
+// Listens on the whole bar (not just the indicator) because the tab
+// buttons sit above the indicator in stacking order and would
+// otherwise swallow the pointer events before the indicator sees them.
+let dragPointerDownX = null;
+let dragActive = false;
+let dragStartIndicatorX = 0;
+
+tabsNav.addEventListener("pointerdown", (e) => {
+  dragPointerDownX = e.clientX;
+  dragActive = false;
+  dragStartIndicatorX = currentIndicatorX;
+});
+
+tabsNav.addEventListener("pointermove", (e) => {
+  if (dragPointerDownX === null) return;
+  const dx = e.clientX - dragPointerDownX;
+
+  if (!dragActive && Math.abs(dx) > 8) {
+    dragActive = true;
+    tabIndicator.classList.add("dragging");
+    tabsNav.setPointerCapture(e.pointerId);
+  }
+
+  if (dragActive) {
+    const maxX = tabsNav.clientWidth - tabIndicator.offsetWidth - 12;
+    currentIndicatorX = Math.max(0, Math.min(maxX, dragStartIndicatorX + dx));
+    tabIndicator.style.transform = `translateX(${currentIndicatorX}px)`;
+  }
+});
+
+tabsNav.addEventListener("pointerup", () => {
+  if (dragActive) {
+    tabIndicator.classList.remove("dragging");
+
+    const indicatorCenter = currentIndicatorX + 6 + tabIndicator.offsetWidth / 2;
+    let closestBtn = tabButtons[0];
+    let closestDist = Infinity;
+    tabButtons.forEach((btn) => {
+      const btnCenter = btn.offsetLeft + btn.offsetWidth / 2;
+      const dist = Math.abs(btnCenter - indicatorCenter);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closestBtn = btn;
+      }
+    });
+    activateTab(closestBtn);
+  }
+  dragPointerDownX = null;
+  dragActive = false;
+});
+
+/* ---- Swipe left/right on a section to switch tabs ---- */
+let touchStartX = 0;
+let touchStartY = 0;
+
+function swipeToRelativeTab(direction) {
+  const currentIndex = tabButtons.findIndex((b) => b.classList.contains("active"));
+  const nextIndex = currentIndex + direction;
+  if (nextIndex < 0 || nextIndex >= tabButtons.length) return;
+  activateTab(tabButtons[nextIndex]);
+}
+
+tabPanels.forEach((panel) => {
+  panel.addEventListener(
+    "touchstart",
+    (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    },
+    { passive: true }
+  );
+
+  panel.addEventListener(
+    "touchend",
+    (e) => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        swipeToRelativeTab(dx < 0 ? 1 : -1);
+      }
+    },
+    { passive: true }
+  );
+});
 
 /* ============ UNIT CONVERTER ============ */
 const categories = {
@@ -178,10 +267,7 @@ swapBtn.addEventListener("click", () => {
   fromUnitSelect.selectedIndex = toUnitSelect.selectedIndex;
   toUnitSelect.selectedIndex = tempIndex;
   convert();
-
-  swapBtn.classList.remove("spin");
-  void swapBtn.offsetWidth;
-  swapBtn.classList.add("spin");
+  swapBtn.classList.toggle("spin");
 });
 
 populateSelect(categorySelect, Object.keys(categories));
