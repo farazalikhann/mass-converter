@@ -30,6 +30,9 @@ const tabIndicator = document.getElementById("tabIndicator");
 function moveTabIndicator(btn) {
   tabIndicator.style.width = btn.offsetWidth + "px";
   tabIndicator.style.transform = `translateX(${btn.offsetLeft - 6}px)`;
+  tabIndicator.classList.remove("morph");
+  void tabIndicator.offsetWidth;
+  tabIndicator.classList.add("morph");
 }
 
 tabButtons.forEach((btn) => {
